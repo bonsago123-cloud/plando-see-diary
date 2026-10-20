@@ -1,0 +1,32 @@
+{
+  "schema_name": "pds-schema-v2",
+  "version": 2,
+  "database": "Neon PostgreSQL",
+  "date_time_rules": {
+    "plan_and_task_date": "DATE stores the calendar date (YYYY-MM-DD) in Asia/Seoul, without timezone conversion",
+    "timestamps": "TIMESTAMPTZ stores an absolute instant; submitted datetime-local values are parsed with explicit +09:00 (Asia/Seoul)",
+    "display_timezone": "Asia/Seoul",
+    "overdue_rule": "task status != completed AND due_date < current Seoul-local calendar date",
+    "duration_unit": "integer minutes, computed in database by ROUND((ended_at-started_at) seconds / 60)",
+    "empty_aggregate": "0"
+  },
+  "tables": {
+    "plans": {"primary_key":"id uuid", "fields":{"title":"text","start_date":"date","end_date":"date","priority":"high|medium|low","success_criteria":"text","estimated_minutes":"integer minutes","version":"integer","parent_plan_id":"uuid|null","carry_over_text":"text","created_at":"timestamptz","updated_at":"timestamptz"},"relations":{"parent_plan_id":"plans.id (nullable)"}},
+    "plan_revisions": {"primary_key":"id bigint identity", "fields":{"plan_id":"uuid","version":"integer","title":"text","start_date":"date","end_date":"date","priority":"text","success_criteria":"text","estimated_minutes":"integer minutes","carry_over_text":"text","recorded_at":"timestamptz"},"relations":{"plan_id":"plans.id"},"uniqueness":["plan_id,version"],"behavior":"AFTER INSERT/UPDATE trigger automatically appends immutable historical snapshot"},
+    "tasks":{"primary_key":"id uuid","fields":{"plan_id":"uuid","title":"text","description":"text","due_date":"date","priority":"high|medium|low","tag":"text","estimated_minutes":"integer minutes","status":"todo|doing|completed","completed_at":"timestamptz|null","deleted_at":"timestamptz|null","created_at":"timestamptz","updated_at":"timestamptz"},"relations":{"plan_id":"plans.id"},"behavior":"soft delete: deleted_at is non-null; excluded from all live aggregates"},
+    "completion_events":{"primary_key":"id bigint identity","fields":{"task_id":"uuid unique","event_key":"text unique","completed_at":"timestamptz"},"relations":{"task_id":"tasks.id"},"behavior":"one immutable event per task: DB-level unique constraints plus atomic UPDATE/INSERT CTE prevent duplicate event from rapid repeat requests; status is counted from tasks, not events"},
+    "work_sessions":{"primary_key":"id uuid","fields":{"task_id":"uuid","started_at":"timestamptz","ended_at":"timestamptz","duration_minutes":"integer generated stored","blocked_reason":"text","created_at":"timestamptz"},"relations":{"task_id":"tasks.id"}},
+    "reviews":{"primary_key":"plan_id uuid","fields":{"reflection":"text","improvement":"text","next_plan_id":"uuid|null","updated_at":"timestamptz"},"relations":{"plan_id":"plans.id","next_plan_id":"plans.id"}}
+  },
+  "aggregates": {
+    "scope":"live tasks for selected plan (deleted_at IS NULL)",
+    "planned":"number of scoped tasks",
+    "completed":"number of scoped tasks currently having status = completed",
+    "overdue":"number of scoped incomplete tasks with due_date earlier than today's Seoul date",
+    "blocked":"number of distinct scoped tasks with >=1 nonblank blocked_reason work_session",
+    "estimated":"sum(tasks.estimated_minutes) for scoped tasks",
+    "actual":"sum(work_sessions.duration_minutes) for scoped tasks",
+    "difference":"actual - estimated"
+  },
+  "security":{"login":"none (public read AND write)","database_secret":"DATABASE_URL only on server runtime; never use NEXT_PUBLIC_","rendering":"React escaped text nodes; do not use dangerouslySetInnerHTML"}
+}

@@ -1,0 +1,10 @@
+export type Priority = 'high' | 'medium' | 'low';
+export type TaskStatus = 'todo' | 'doing' | 'completed';
+export type Plan = {id:string;title:string;start_date:string;end_date:string;priority:Priority;success_criteria:string;estimated_minutes:number;version:number;parent_plan_id:string|null;carry_over_text:string;created_at:string;updated_at:string};
+export type Revision = Pick<Plan,'title'|'start_date'|'end_date'|'priority'|'success_criteria'|'estimated_minutes'|'version'|'carry_over_text'> & {id:string;plan_id:string;recorded_at:string};
+export type Task = {id:string;plan_id:string;title:string;description:string;due_date:string;priority:Priority;tag:string;estimated_minutes:number;status:TaskStatus;completed_at:string|null;created_at:string;updated_at:string};
+export type Session = {id:string;task_id:string;started_at:string;ended_at:string;duration_minutes:number;blocked_reason:string;created_at:string};
+export type Review = {plan_id:string;reflection:string;improvement:string;next_plan_id:string|null;updated_at:string};
+export type Dashboard = {plans:Plan[];revisions:Revision[];tasks:Task[];sessions:Session[];reviews:Review[]};
+export const EMPTY:Dashboard={plans:[],revisions:[],tasks:[],sessions:[],reviews:[]};
+export type MetricKey='all'|'completed'|'overdue'|'blocked'|'estimated'|'actual'|'difference';
