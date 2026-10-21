@@ -16,7 +16,7 @@ export function summarize(tasks:Task[],sessions:Session[],today=seoulToday()) {
   const completed=tasks.filter(t=>t.status==='completed').length;
   const overdue=tasks.filter(t=>taskIsOverdue(t,today)).length;
   const blockedCount=tasks.filter(t=>blocked.has(t.id)).length;
-  const estimated=tasks.reduce((sum,t)=>sum+t.estimated_minutes,0);
+  const estimated=tasks.reduce((sum,t)=>sum+(t.estimated_minutes??0),0);
   const actual=tasks.reduce((sum,t)=>sum+(actualByTask.get(t.id)??0),0);
   return {planned,completed,overdue,blocked:blockedCount,estimated,actual,difference:actual-estimated};
 }

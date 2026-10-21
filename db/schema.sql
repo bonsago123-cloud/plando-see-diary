@@ -8,10 +8,11 @@ CREATE TABLE IF NOT EXISTS plans (
   end_date date NOT NULL CHECK (end_date >= start_date),
   priority text NOT NULL DEFAULT 'medium' CHECK (priority IN ('high','medium','low')),
   success_criteria text NOT NULL CHECK (length(btrim(success_criteria)) BETWEEN 1 AND 1000),
-  estimated_minutes integer NOT NULL DEFAULT 0 CHECK (estimated_minutes BETWEEN 0 AND 1000000),
+  estimated_minutes integer CHECK (estimated_minutes BETWEEN 0 AND 1000000),
   version integer NOT NULL DEFAULT 1 CHECK (version >= 1),
   parent_plan_id uuid REFERENCES plans(id) ON DELETE SET NULL,
   carry_over_text text NOT NULL DEFAULT '',
+  deleted_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -24,7 +25,7 @@ CREATE TABLE IF NOT EXISTS plan_revisions (
   end_date date NOT NULL,
   priority text NOT NULL,
   success_criteria text NOT NULL,
-  estimated_minutes integer NOT NULL,
+  estimated_minutes integer,
   carry_over_text text NOT NULL DEFAULT '',
   recorded_at timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT uq_plan_version UNIQUE (plan_id,version)
@@ -48,7 +49,10 @@ CREATE TABLE IF NOT EXISTS tasks (
   due_date date NOT NULL,
   priority text NOT NULL DEFAULT 'medium' CHECK(priority IN ('high','medium','low')),
   tag text NOT NULL DEFAULT '',
-  estimated_minutes integer NOT NULL DEFAULT 0 CHECK(estimated_minutes BETWEEN 0 AND 1000000),
+  estimated_minutes integer CHECK(estimated_minutes BETWEEN 0 AND 1000000),
+  start_time time without time zone,
+  end_time time without time zone,
+  CONSTRAINT tasks_time_slot_valid CHECK ((start_time IS NULL AND end_time IS NULL) OR (start_time IS NOT NULL AND end_time IS NOT NULL AND end_time > start_time)),
   status text NOT NULL DEFAULT 'todo' CHECK(status IN ('todo','doing','completed')),
   completed_at timestamptz,
   deleted_at timestamptz,
