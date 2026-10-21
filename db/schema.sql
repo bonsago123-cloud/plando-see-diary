@@ -74,9 +74,11 @@ CREATE TABLE IF NOT EXISTS work_sessions (
   duration_minutes integer GENERATED ALWAYS AS (round(extract(epoch FROM (ended_at-started_at))/60)::integer) STORED,
   blocked_reason text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz,
   CHECK(length(blocked_reason) <= 1000)
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_task ON work_sessions(task_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_active_task ON work_sessions(task_id) WHERE deleted_at IS NULL;
 CREATE TABLE IF NOT EXISTS reviews (
   plan_id uuid PRIMARY KEY REFERENCES plans(id) ON DELETE CASCADE,
   reflection text NOT NULL DEFAULT '',

@@ -99,11 +99,13 @@
         "ended_at": "timestamptz",
         "duration_minutes": "integer generated stored",
         "blocked_reason": "text",
-        "created_at": "timestamptz"
+        "created_at": "timestamptz",
+        "deleted_at": "timestamptz|null (soft-deleted execution record)"
       },
       "relations": {
         "task_id": "tasks.id"
-      }
+      },
+      "behavior": "Edit recalculates generated duration_minutes; soft deletion removes a session from live lists and aggregates, but exports the historical row with deleted_at."
     },
     "reviews": {
       "primary_key": "plan_id uuid",
@@ -124,9 +126,9 @@
     "planned": "number of scoped tasks",
     "completed": "number of scoped tasks currently having status = completed",
     "overdue": "number of scoped incomplete tasks with due_date earlier than today's Seoul date",
-    "blocked": "number of distinct scoped tasks with >=1 nonblank blocked_reason work_session",
+    "blocked": "number of distinct scoped tasks with >=1 nonblank blocked_reason in a live work_session (deleted_at IS NULL)",
     "estimated": "sum(non-null tasks.estimated_minutes) for scoped tasks; returns 0 if all are NULL or empty; NULL is never shown as an individual 0 minute estimate",
-    "actual": "sum(work_sessions.duration_minutes) for scoped tasks",
+    "actual": "sum(duration_minutes) of live work_sessions (deleted_at IS NULL) for scoped tasks; editing recalculates duration; deleted records excluded",
     "difference": "actual - estimated"
   },
   "security": {

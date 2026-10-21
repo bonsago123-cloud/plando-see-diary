@@ -36,3 +36,9 @@
 .optional-setting{display:flex;align-items:center;gap:9px;min-height:34px;font-size:12px;font-weight:700;color:#304f42;cursor:pointer}
 .optional-setting input[type="checkbox"]{width:17px;height:17px;accent-color:#17775d;margin:0;flex:none}
 .optional-time-grid{margin-top:9px}
+
+/* Execution history editing and safe deletion: adjacent accessible actions. */
+.session-actions{display:flex;align-items:center;gap:3px;flex:none}
+.session-actions .icon-button:hover{background:#eef6f0}
+.session-actions .icon-button:last-child:hover{background:#fff0f0;color:#a43f46}
+@media(max-width:640px){.session-row{gap:8px;flex-wrap:wrap}.session-text{flex-basis:calc(100% - 56px)}.session-duration{margin-left:48px}.session-actions{margin-left:auto}}

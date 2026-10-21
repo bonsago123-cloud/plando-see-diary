@@ -73,8 +73,8 @@ async function loadAll(includeDeleted=false){
    ?sql`SELECT id,plan_id,title,description,to_char(due_date,'YYYY-MM-DD') AS due_date,priority,tag,estimated_minutes,to_char(start_time,'HH24:MI') AS start_time,to_char(end_time,'HH24:MI') AS end_time,status,completed_at,deleted_at,created_at,updated_at FROM tasks ORDER BY created_at,id`
    :sql`SELECT id,plan_id,title,description,to_char(due_date,'YYYY-MM-DD') AS due_date,priority,tag,estimated_minutes,to_char(start_time,'HH24:MI') AS start_time,to_char(end_time,'HH24:MI') AS end_time,status,completed_at,created_at,updated_at FROM tasks t WHERE t.deleted_at IS NULL AND EXISTS (SELECT 1 FROM plans p WHERE p.id=t.plan_id AND p.deleted_at IS NULL) ORDER BY created_at,id`,
   includeDeleted
-   ?sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at FROM work_sessions ORDER BY started_at DESC,id`
-   :sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at FROM work_sessions s WHERE EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.deleted_at IS NULL) ORDER BY started_at DESC,id`,
+   ?sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at,deleted_at FROM work_sessions ORDER BY started_at DESC,id`
+   :sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at FROM work_sessions s WHERE s.deleted_at IS NULL AND EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.deleted_at IS NULL) ORDER BY started_at DESC,id`,
   includeDeleted
    ?sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews ORDER BY updated_at DESC`
    :sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.deleted_at IS NULL) ORDER BY updated_at DESC`
@@ -145,6 +145,31 @@ export async function POST(req:NextRequest){
    const res=await sql`INSERT INTO work_sessions(task_id,started_at,ended_at,blocked_reason)
     SELECT id,${start}::timestamptz,${end}::timestamptz,${reason} FROM tasks WHERE id=${taskId} AND deleted_at IS NULL AND EXISTS (SELECT 1 FROM plans p WHERE p.id=tasks.plan_id AND p.deleted_at IS NULL) RETURNING id`;
    if(!res.length)return err('할 일을 찾을 수 없습니다.',404);
+  }else if(action==='editSession'){
+   const sessionId=id(x.id),taskId=id(x.task_id);
+   const start=seoulInstant(x.started,'시작 시각'),end=seoulInstant(x.ended,'종료 시각');
+   const reason=str(x.blocked_reason,'막힌 이유',1000);
+   if(new Date(end).getTime()<new Date(start).getTime())throw Error('끝난 시각은 시작 시각보다 빠를 수 없습니다.');
+   if(new Date(end).getTime()-new Date(start).getTime()>1000*60*60*24*7)throw Error('한 실행 기록은 7일을 초과할 수 없습니다.');
+   // Only edit a live record; changing the linked task is limited to the same live plan.
+   // duration_minutes is a GENERATED ALWAYS column, recalculated by PostgreSQL.
+   const res=await sql`UPDATE work_sessions s
+    SET task_id=${taskId},started_at=${start}::timestamptz,ended_at=${end}::timestamptz,blocked_reason=${reason}
+    WHERE s.id=${sessionId} AND s.deleted_at IS NULL
+      AND EXISTS (SELECT 1 FROM tasks t JOIN tasks original ON original.id=s.task_id
+       JOIN plans p ON p.id=t.plan_id
+       WHERE t.id=${taskId} AND t.plan_id=original.plan_id AND t.deleted_at IS NULL AND p.deleted_at IS NULL)
+    RETURNING s.id`;
+   if(!res.length)return err('수정할 실행 기록을 찾을 수 없습니다.',404);
+  }else if(action==='deleteSession'){
+   const sessionId=id(x.id);
+   // Soft deletion hides the incorrect entry from every normal aggregate and preserves it in export.
+   const res=await sql`UPDATE work_sessions s SET deleted_at=now()
+    WHERE s.id=${sessionId} AND s.deleted_at IS NULL
+      AND EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id
+       WHERE t.id=s.task_id AND p.deleted_at IS NULL)
+    RETURNING s.id`;
+   if(!res.length)return err('삭제할 실행 기록을 찾을 수 없습니다.',404);
   }else if(action==='saveReview'){
    const planId=id(x.plan_id),reflection=str(x.reflection,'돌아보기',3000),improvement=str(x.improvement,'다음에 고칠 점',1000);
    const changed=await sql`INSERT INTO reviews(plan_id,reflection,improvement) SELECT id,${reflection},${improvement} FROM plans WHERE id=${planId} AND deleted_at IS NULL ON CONFLICT(plan_id) DO UPDATE SET reflection=excluded.reflection,improvement=excluded.improvement,updated_at=now() RETURNING plan_id`;
