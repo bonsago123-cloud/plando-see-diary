@@ -1,0 +1,61 @@
+/** 50 short quotations from named primary literary works; Korean is a close, literal rendering. */
+export type Quote = {ko:string; original:string; author:string; work:string; sourceUrl:string};
+export const QUOTES: readonly Quote[] = [
+  {"ko": "자기 자신에게 진실하라.", "original": "To thine own self be true.", "author": "윌리엄 셰익스피어", "work": "《햄릿》 1막 3장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/hamlet/read/1/3/"},
+  {"ko": "역경의 쓰임은 달콤하다.", "original": "Sweet are the uses of adversity.", "author": "윌리엄 셰익스피어", "work": "《뜻대로 하세요》 2막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/as-you-like-it/read/2/1/"},
+  {"ko": "무슨 일이 오든 오게 하라. 시간과 시각은 가장 거친 날도 지나간다.", "original": "Come what come may, time and the hour runs through the roughest day.", "author": "윌리엄 셰익스피어", "work": "《맥베스》 1막 3장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/macbeth/read/1/3/"},
+  {"ko": "지나간 것은 서막이다.", "original": "What's past is prologue.", "author": "윌리엄 셰익스피어", "work": "《템페스트》 2막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/the-tempest/read/2/1/"},
+  {"ko": "잘못은, 브루투스여, 우리의 별이 아니라 우리 자신에게 있다.", "original": "The fault, dear Brutus, is not in our stars, but in ourselves.", "author": "윌리엄 셰익스피어", "work": "《줄리어스 시저》 1막 2장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/julius-caesar/read/1/2/"},
+  {"ko": "우리의 의심은 배신자이며, 시도하기를 두려워하여 얻을 수도 있는 좋은 것을 잃게 만든다.", "original": "Our doubts are traitors and makes us lose the good we oft might win by fearing to attempt.", "author": "윌리엄 셰익스피어", "work": "《자에는 자로》 1막 4장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/measure-for-measure/read/1/4/"},
+  {"ko": "그녀는 작지만 사납다.", "original": "Though she be but little, she is fierce.", "author": "윌리엄 셰익스피어", "work": "《한여름 밤의 꿈》 3막 2장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/a-midsummer-nights-dream/read/3/2/"},
+  {"ko": "이것이 최악이라고 말할 수 있는 동안에는 최악이 아니다.", "original": "The worst is not, so long as we can say, 'This is the worst.'", "author": "윌리엄 셰익스피어", "work": "《리어왕》 4막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/king-lear/read/4/1/"},
+  {"ko": "우리 마음이 그러하다면 모든 것은 준비되어 있다.", "original": "All things are ready if our minds be so.", "author": "윌리엄 셰익스피어", "work": "《헨리 5세》 4막 3장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/henry-v/read/4/3/"},
+  {"ko": "모두를 사랑하고, 소수를 믿고, 누구에게도 잘못을 저지르지 마라.", "original": "Love all, trust a few, do wrong to none.", "author": "윌리엄 셰익스피어", "work": "《끝이 좋으면 다 좋다》 1막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/alls-well-that-ends-well/read/1/1/"},
+  {"ko": "어떤 이는 위대하게 태어나고, 어떤 이는 위대함을 이루고, 어떤 이는 위대함을 떠맡는다.", "original": "Some are born great, some achieve greatness, and some have greatness thrust upon them.", "author": "윌리엄 셰익스피어", "work": "《십이야》 2막 5장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/twelfth-night/read/2/5/"},
+  {"ko": "현명하게, 그리고 천천히. 빨리 달리는 사람은 넘어진다.", "original": "Wisely and slow. They stumble that run fast.", "author": "윌리엄 셰익스피어", "work": "《로미오와 줄리엣》 2막 3장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/romeo-and-juliet/read/2/3/"},
+  {"ko": "저 작은 촛불이 얼마나 멀리 빛을 던지는가!", "original": "How far that little candle throws his beams!", "author": "윌리엄 셰익스피어", "work": "《베니스의 상인》 5막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/the-merchant-of-venice/read/5/1/"},
+  {"ko": "나는 항의할 몫이 남지 않을 만큼 많은 마음으로 당신을 사랑해요.", "original": "I love you with so much of my heart that none is left to protest.", "author": "윌리엄 셰익스피어", "work": "《헛소동》 4막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/much-ado-about-nothing/read/4/1/"},
+  {"ko": "사람은 보이는 그대로여야 한다.", "original": "Men should be what they seem.", "author": "윌리엄 셰익스피어", "work": "《오셀로》 3막 3장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/othello/read/3/3/"},
+  {"ko": "차린 것은 적어도 큰 환영이 있으면 즐거운 잔치가 된다.", "original": "Small cheer and great welcome makes a merry feast.", "author": "윌리엄 셰익스피어", "work": "《실수 연발》 3막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/the-comedy-of-errors/read/3/1/"},
+  {"ko": "왕관을 쓴 머리는 편안히 눕지 못한다.", "original": "Uneasy lies the head that wears a crown.", "author": "윌리엄 셰익스피어", "work": "《헨리 4세 2부》 3막 1장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/henry-iv-part-2/read/3/1/"},
+  {"ko": "나는 시간을 낭비했고, 이제 시간은 나를 낭비한다.", "original": "I wasted time, and now doth time waste me.", "author": "윌리엄 셰익스피어", "work": "《리처드 2세》 5막 5장", "sourceUrl": "https://www.folger.edu/explore/shakespeares-works/richard-ii/read/5/5/"},
+  {"ko": "이 순간까지 나는 나 자신을 알지 못했다.", "original": "Till this moment I never knew myself.", "author": "제인 오스틴", "work": "《오만과 편견》 36장", "sourceUrl": "https://www.gutenberg.org/cache/epub/1342/pg1342-images.html"},
+  {"ko": "마음의 다정함과 맞먹는 매력은 없다.", "original": "There is no charm equal to tenderness of heart.", "author": "제인 오스틴", "work": "《에마》", "sourceUrl": "https://www.gutenberg.org/files/158/158-h/158-h.htm"},
+  {"ko": "자신의 행복을 알아라. 당신에게 부족한 것은 인내뿐이다.", "original": "Know your own happiness. You want nothing but patience.", "author": "제인 오스틴", "work": "《이성과 감성》", "sourceUrl": "https://www.gutenberg.org/files/161/161-h/161-h.htm"},
+  {"ko": "당신은 내 영혼을 꿰뚫어요. 나는 반은 고통이고 반은 희망이에요.", "original": "You pierce my soul. I am half agony, half hope.", "author": "제인 오스틴", "work": "《설득》 23장", "sourceUrl": "https://www.gutenberg.org/files/105/old/105-h/105-h.htm"},
+  {"ko": "좋은 날 그늘에 앉아 녹음을 바라보는 것은 가장 완전한 휴식이다.", "original": "To sit in the shade on a fine day, and look upon verdure, is the most perfect refreshment.", "author": "제인 오스틴", "work": "《맨스필드 파크》", "sourceUrl": "https://www.gutenberg.org/files/141/141-h/141-h.htm"},
+  {"ko": "모험이 자신의 마을에 찾아오지 않는다면, 젊은 숙녀는 밖으로 모험을 찾아 나서야 한다.", "original": "If adventures will not befall a young lady in her own village, she must seek them abroad.", "author": "제인 오스틴", "work": "《노생거 사원》 1장", "sourceUrl": "https://www.gutenberg.org/files/121/121-h/121-h.htm"},
+  {"ko": "오늘 할 수 있는 것을 내일 하지 마라.", "original": "Never do to-morrow what you can do to-day.", "author": "찰스 디킨스", "work": "《데이비드 코퍼필드》", "sourceUrl": "https://www.gutenberg.org/cache/epub/43111/pg43111-images.html"},
+  {"ko": "나는 내 마음에 크리스마스를 간직하고 일 년 내내 지키려고 노력할 것이다.", "original": "I will honour Christmas in my heart, and try to keep it all the year.", "author": "찰스 디킨스", "work": "《크리스마스 캐럴》", "sourceUrl": "https://www.gutenberg.org/files/46/46-h/46-h.htm"},
+  {"ko": "고통은 다른 모든 가르침보다 강했다.", "original": "Suffering has been stronger than all other teaching.", "author": "찰스 디킨스", "work": "《위대한 유산》", "sourceUrl": "https://www.gutenberg.org/files/1400/1400-h/1400-h.htm"},
+  {"ko": "진실은 좀처럼 순수하지 않고 결코 단순하지 않다.", "original": "The truth is rarely pure and never simple.", "author": "오스카 와일드", "work": "《진지함의 중요성》", "sourceUrl": "https://www.gutenberg.org/files/844/844-h/844-h.htm"},
+  {"ko": "경험은 사람들이 자신의 실수에 붙이는 이름이다.", "original": "Experience is the name every one gives to their mistakes.", "author": "오스카 와일드", "work": "《윈더미어 부인의 부채》", "sourceUrl": "https://www.gutenberg.org/files/790/790-h/790-h.htm"},
+  {"ko": "자기 자신을 사랑하는 것은 평생 이어질 사랑의 시작이다.", "original": "To love oneself is the beginning of a lifelong romance.", "author": "오스카 와일드", "work": "《이상적인 남편》", "sourceUrl": "https://www.gutenberg.org/files/885/885-h/885-h.htm"},
+  {"ko": "다른 사람을 바꾸기는 매우 쉽다. 자신을 바꾸기는 매우 어렵다.", "original": "It is so easy to convert others. It is so difficult to convert oneself.", "author": "오스카 와일드", "work": "《경구집》", "sourceUrl": "https://www.gutenberg.org/files/33979/33979-h/33979-h.htm"},
+  {"ko": "점점 더 신기해진다!", "original": "Curiouser and curiouser!", "author": "루이스 캐럴", "work": "《이상한 나라의 앨리스》 2장", "sourceUrl": "https://www.gutenberg.org/files/11/old/11-h/11-h.htm"},
+  {"ko": "나는 가끔 아침 식사 전에 불가능한 일을 여섯 가지나 믿었단다.", "original": "Why, sometimes I’ve believed as many as six impossible things before breakfast.", "author": "루이스 캐럴", "work": "《거울 나라의 앨리스》 5장", "sourceUrl": "https://www.gutenberg.org/cache/epub/12/pg12-images.html"},
+  {"ko": "내일이 아직 실수가 하나도 없는 새로운 날이라는 생각은 좋지 않나요?", "original": "Isn’t it nice to think that tomorrow is a new day with no mistakes in it yet?", "author": "루시 모드 몽고메리", "work": "《빨간 머리 앤》", "sourceUrl": "https://www.gutenberg.org/files/45/45-h/45-h.htm"},
+  {"ko": "나는 폭풍이 두렵지 않아. 내 배를 모는 법을 배우고 있으니까.", "original": "I’m not afraid of storms, for I’m learning how to sail my ship.", "author": "루이자 메이 올컷", "work": "《작은 아씨들》", "sourceUrl": "https://www.gutenberg.org/files/514/514-h/514-h.htm"},
+  {"ko": "장미를 돌보는 곳에는, 얘야, 엉겅퀴가 자라지 못한단다.", "original": "Where you tend a rose, my lad, a thistle cannot grow.", "author": "프랜시스 호지슨 버넷", "work": "《비밀의 화원》", "sourceUrl": "https://www.gutenberg.org/files/113/old/113-h/113-h.htm"},
+  {"ko": "나는 새가 아니고, 어떤 그물도 나를 얽어매지 못한다.", "original": "I am no bird; and no net ensnares me.", "author": "샬럿 브론테", "work": "《제인 에어》", "sourceUrl": "https://www.gutenberg.org/files/1260/1260-h/1260-h.htm"},
+  {"ko": "세상은 누구도 우연히 관찰하지 않는 명백한 것들로 가득하다.", "original": "The world is full of obvious things which nobody by any chance ever observes.", "author": "아서 코넌 도일", "work": "《바스커빌가의 개》", "sourceUrl": "https://www.gutenberg.org/files/2852/2852-h/2852-h.htm"},
+  {"ko": "자료를 얻기 전에 이론을 세우는 것은 중대한 실수다.", "original": "It is a capital mistake to theorize before one has data.", "author": "아서 코넌 도일", "work": "《보헤미아의 스캔들》", "sourceUrl": "https://www.gutenberg.org/files/1661/1661-h/1661-h.htm"},
+  {"ko": "집만 한 곳은 없다.", "original": "There is no place like home.", "author": "라이먼 프랭크 바움", "work": "《오즈의 마법사》", "sourceUrl": "https://www.gutenberg.org/files/55/55-h/55-h.htm"},
+  {"ko": "우리 삶은 세부 사항 때문에 조금씩 소모된다.", "original": "Our life is frittered away by detail.", "author": "헨리 데이비드 소로", "work": "《월든》", "sourceUrl": "https://www.gutenberg.org/cache/epub/205/pg205-images.html"},
+  {"ko": "자기 자신을 믿어라. 모든 마음은 그 쇠줄에 공명한다.", "original": "Trust thyself: every heart vibrates to that iron string.", "author": "랠프 월도 에머슨", "work": "《자기 신뢰》", "sourceUrl": "https://www.gutenberg.org/cache/epub/16643/pg16643-images.html"},
+  {"ko": "희망은 영혼에 앉아 있는 깃털 달린 것이다.", "original": "Hope is the thing with feathers that perches in the soul.", "author": "에밀리 디킨슨", "work": "〈희망〉", "sourceUrl": "https://www.gutenberg.org/cache/epub/2679/pg2679.html"},
+  {"ko": "나는 크다. 나는 수많은 것을 품고 있다.", "original": "I am large, I contain multitudes.", "author": "월트 휘트먼", "work": "〈나 자신의 노래〉", "sourceUrl": "https://www.gutenberg.org/cache/epub/1322/pg1322-images.html"},
+  {"ko": "일은 눈에 보이게 된 사랑이다.", "original": "Work is love made visible.", "author": "칼릴 지브란", "work": "《예언자》", "sourceUrl": "https://www.gutenberg.org/cache/epub/58585/pg58585-images.html"},
+  {"ko": "희망을 품고 여행하는 것이 도착하는 것보다 더 낫다.", "original": "To travel hopefully is a better thing than to arrive.", "author": "로버트 루이스 스티븐슨", "work": "〈엘도라도〉", "sourceUrl": "https://www.gutenberg.org/files/69825/69825-h/69825-h.htm"},
+  {"ko": "노력하고, 찾고, 발견하고, 굴복하지 않기 위해.", "original": "To strive, to seek, to find, and not to yield.", "author": "앨프리드 테니슨", "work": "〈율리시스〉", "sourceUrl": "https://www.gutenberg.org/cache/epub/8601/pg8601-images.html"},
+  {"ko": "그러니 일어나 행동하자. 어떤 운명도 감당할 마음으로.", "original": "Let us, then, be up and doing, with a heart for any fate.", "author": "헨리 워즈워스 롱펠로", "work": "〈인생 찬가〉", "sourceUrl": "https://www.gutenberg.org/files/34237/34237-h/34237-h.htm"},
+  {"ko": "스스로를 돕는 정신은 개인의 모든 진정한 성장의 뿌리이다.", "original": "The spirit of self-help is the root of all genuine growth in the individual.", "author": "새뮤얼 스마일스", "work": "《자조론》", "sourceUrl": "https://www.gutenberg.org/files/935/935-h/935-h.htm"},
+  {"ko": "우리는 서로의 삶을 조금 덜 어렵게 해주기 위해 사는 것이 아닌가?", "original": "What do we live for, if it is not to make life less difficult to each other?", "author": "조지 엘리엇", "work": "《미들마치》", "sourceUrl": "https://www.gutenberg.org/files/145/145-h/145-h.htm"},
+];
+/** Pick a different quotation whenever there are at least two options. */
+export function nextQuoteIndex(current:number, randomValue:number=Math.random()):number {
+  if (QUOTES.length <= 1) return 0;
+  const r = Math.max(0,Math.min(0.999999999999,randomValue));
+  const offset=Math.floor(r*(QUOTES.length-1))+1;
+  return (current+offset)%QUOTES.length;
+}
