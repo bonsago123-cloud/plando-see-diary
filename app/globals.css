@@ -57,3 +57,11 @@
 .task-time-extra{color:#b85b46}
 .task-time-equal{color:#72867b}
 @media(prefers-reduced-motion:reduce){.task-time-progress{transition:none}}
+
+/* Per-task direct state selector: keep the existing badge look while supporting all three statuses. */
+.task-status-select{appearance:auto;border:1px solid transparent;border-radius:7px;min-width:86px;padding:7px 4px 7px 9px;font-size:11px;font-weight:750;cursor:pointer;flex:none;outline-offset:2px}
+.task-status-select:focus-visible{outline:2px solid #17775d}
+.task-status-select:disabled{cursor:wait;opacity:.5}
+.task-status-todo{background:#f0f3f1;color:#667e73}
+.task-status-doing{background:#edf3ff;color:#5377b1}
+.task-status-completed{background:#e7f7eb;color:#218153}
