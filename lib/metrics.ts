@@ -20,6 +20,29 @@ export function summarize(tasks:Task[],sessions:Session[],today=seoulToday()) {
   const actual=tasks.reduce((sum,t)=>sum+(actualByTask.get(t.id)??0),0);
   return {planned,completed,overdue,blocked:blockedCount,estimated,actual,difference:actual-estimated};
 }
+/** Each task's actual time includes only active execution records.
+ * No record means "not recorded", not zero actual minutes.
+ * No expected time means the difference is unavailable, not a zero estimate.
+ */
+export function compareTaskTime(
+ task:Pick<Task,'id'|'estimated_minutes'>,
+ sessions:Pick<Session,'task_id'|'duration_minutes'|'deleted_at'>[]
+):{actual:number|null;difference:number|null}{
+ const entries=sessions.filter(s=>s.task_id===task.id&&!s.deleted_at);
+ if(!entries.length)return {actual:null,difference:null};
+ const actual=entries.reduce((sum,s)=>sum+s.duration_minutes,0);
+ return {actual,difference:task.estimated_minutes===null?null:actual-task.estimated_minutes};
+}
+
+/** The visual comparison bar uses the planned duration as 100%.
+ * A missing/zero estimate has no meaningful scale; omit its bar.
+ * Time overrun fills the bar and is distinguished by a separate red trend indicator.
+ */
+export function taskTimeBarPercent(estimate:number|null,actual:number|null):number|null {
+ if(estimate===null||actual===null||estimate<=0)return null;
+ return Math.max(0,Math.min(100,actual/estimate*100));
+}
+
 export function evidenceTasks(key:MetricKey,tasks:Task[],sessions:Session[],today=seoulToday()):Task[] {
   const blocked=new Set(sessions.filter(s=>s.blocked_reason.trim()).map(s=>s.task_id));
   if(key==='completed')return tasks.filter(t=>t.status==='completed');

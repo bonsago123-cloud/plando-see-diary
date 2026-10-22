@@ -42,3 +42,18 @@
 .session-actions .icon-button:hover{background:#eef6f0}
 .session-actions .icon-button:last-child:hover{background:#fff0f0;color:#a43f46}
 @media(max-width:640px){.session-row{gap:8px;flex-wrap:wrap}.session-text{flex-basis:calc(100% - 56px)}.session-duration{margin-left:48px}.session-actions{margin-left:auto}}
+
+/* Compact single-bar actual-vs-planned comparison. Both dashboard and task page share the task list. */
+.task-time-comparison{display:flex;align-items:center;flex-wrap:wrap;gap:9px;margin-top:9px;font-size:11px;line-height:1.3}
+.task-time-track{width:136px;max-width:42vw;height:9px;border-radius:99px;overflow:hidden;flex:none;background:#dceee2}
+.task-time-track-extra{background:#fae5df}
+.task-time-track-equal{background:#e5ece8}
+.task-time-progress{height:100%;border-radius:99px;background:#21946a;transition:width .2s ease}
+.task-time-track-extra .task-time-progress{background:#d46b58}
+.task-time-track-equal .task-time-progress{background:#81988c}
+.task-time-actual{font-weight:650;color:#697d71;white-space:nowrap}
+.task-time-variance{display:inline-flex;gap:3px;align-items:center;font-weight:800;white-space:nowrap}
+.task-time-saved{color:#168458}
+.task-time-extra{color:#b85b46}
+.task-time-equal{color:#72867b}
+@media(prefers-reduced-motion:reduce){.task-time-progress{transition:none}}
