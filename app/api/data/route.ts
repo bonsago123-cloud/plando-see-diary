@@ -27,7 +27,7 @@ function clockTime(v:unknown):string|null {
  return v;
 }
 function priority(v:unknown):string {if(v!=='high'&&v!=='medium'&&v!=='low')throw Error('우선순위가 올바르지 않습니다.');return v;}
-type PlanFields={title:string;priority:string;estimated:number|null;start:string;end:string;success:string};
+type PlanFields={title:string;priority:string;estimated:number|null;start:string;end:string;success:string;category:string|null};
 type TaskFields={title:string;priority:string;estimated:number|null;due:string;tag:string;description:string;startTime:string|null;endTime:string|null};
 function fields(x:Record<string,unknown>,type:'plan'):PlanFields;
 function fields(x:Record<string,unknown>,type:'task'):TaskFields;
@@ -38,7 +38,7 @@ function fields(x:Record<string,unknown>,type:'plan'|'task'):PlanFields|TaskFiel
  if(type==='plan') {
   const start=day(x.start_date,'시작일'),end=day(x.end_date,'종료일');
   if(end<start)throw Error('종료일은 시작일보다 빠를 수 없습니다.');
-  return {title,priority:p,estimated,start,end,success:str(x.success_criteria,'성공 기준',1000,true)};
+  return {title,priority:p,estimated,start,end,success:str(x.success_criteria,'성공 기준',1000,true),category:str(x.category??'','카테고리',50)||null};
  }
  const startTime=clockTime(x.start_time),endTime=clockTime(x.end_time);
  if((startTime===null)!==(endTime===null))throw Error('시작 시간과 종료 시간을 모두 설정하세요.');
@@ -54,7 +54,7 @@ function seoulInstant(v:unknown,label:string):string {
 function dbError(e:unknown){
  const message=e instanceof Error?e.message:'';
  if(message==='DATABASE_NOT_CONFIGURED')return err('Neon DATABASE_URL이 설정되지 않았습니다. README의 연결 방법을 확인하세요.',503);
- if(/relation .* does not exist/i.test(message))return err('Neon 테이블이 없습니다. db/schema.sql을 먼저 실행하세요.',503);
+ if(/relation .* does not exist/i.test(message))return err('Neon 테이블이 없습니다. db/schema.sql과 db/migrations/20261024_latest_design.sql을 확인하세요.',503);
  // Do not return raw SQL, database host, database credentials or internal exception messages to clients.
  console.error('Database operation failed:',message.replace(/postgres(?:ql)?:\/\/\S+/g,'[redacted database url]').slice(0,250));
  return err('데이터를 처리하지 못했습니다. 입력 내용과 데이터베이스 연결 상태를 확인하세요.',500);
@@ -62,13 +62,13 @@ function dbError(e:unknown){
 const opts={headers:{'Cache-Control':'no-store'}};
 async function loadAll(includeDeleted=false){
  const sql=db();
- const [plans,revisions,tasks,sessions,reviews]=await Promise.all([
+ const [plans,revisions,tasks,sessions,reviews,categories,topics,thoughts]=await Promise.all([
   includeDeleted
-   ?sql`SELECT id,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,version,parent_plan_id,carry_over_text,created_at,updated_at,deleted_at FROM plans ORDER BY created_at ASC,id ASC`
-   :sql`SELECT id,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,version,parent_plan_id,carry_over_text,created_at,updated_at FROM plans WHERE deleted_at IS NULL ORDER BY created_at ASC,id ASC`,
+   ?sql`SELECT id,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,version,parent_plan_id,carry_over_text,category,is_completed,created_at,updated_at,deleted_at FROM plans ORDER BY created_at ASC,id ASC`
+   :sql`SELECT id,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,version,parent_plan_id,carry_over_text,category,is_completed,created_at,updated_at FROM plans WHERE deleted_at IS NULL ORDER BY created_at ASC,id ASC`,
   includeDeleted
-   ?sql`SELECT id,plan_id,version,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,carry_over_text,recorded_at FROM plan_revisions ORDER BY plan_id,version`
-   :sql`SELECT id,plan_id,version,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,carry_over_text,recorded_at FROM plan_revisions r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.deleted_at IS NULL) ORDER BY plan_id,version`,
+   ?sql`SELECT id,plan_id,version,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,carry_over_text,category,is_completed,recorded_at FROM plan_revisions ORDER BY plan_id,version`
+   :sql`SELECT id,plan_id,version,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,priority,success_criteria,estimated_minutes,carry_over_text,category,is_completed,recorded_at FROM plan_revisions r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.deleted_at IS NULL) ORDER BY plan_id,version`,
   includeDeleted
    ?sql`SELECT id,plan_id,title,description,to_char(due_date,'YYYY-MM-DD') AS due_date,priority,tag,estimated_minutes,to_char(start_time,'HH24:MI') AS start_time,to_char(end_time,'HH24:MI') AS end_time,status,completed_at,deleted_at,created_at,updated_at FROM tasks ORDER BY created_at,id`
    :sql`SELECT id,plan_id,title,description,to_char(due_date,'YYYY-MM-DD') AS due_date,priority,tag,estimated_minutes,to_char(start_time,'HH24:MI') AS start_time,to_char(end_time,'HH24:MI') AS end_time,status,completed_at,created_at,updated_at FROM tasks t WHERE t.deleted_at IS NULL AND EXISTS (SELECT 1 FROM plans p WHERE p.id=t.plan_id AND p.deleted_at IS NULL) ORDER BY created_at,id`,
@@ -77,9 +77,12 @@ async function loadAll(includeDeleted=false){
    :sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at FROM work_sessions s WHERE s.deleted_at IS NULL AND EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.deleted_at IS NULL) ORDER BY started_at DESC,id`,
   includeDeleted
    ?sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews ORDER BY updated_at DESC`
-   :sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.deleted_at IS NULL) ORDER BY updated_at DESC`
+   :sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.deleted_at IS NULL) ORDER BY updated_at DESC`,
+  sql`SELECT name FROM plan_categories ORDER BY name`,
+  sql`SELECT id,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,blocks,created_at,updated_at,deleted_at FROM thought_topics WHERE (${includeDeleted}::boolean OR deleted_at IS NULL) ORDER BY created_at,id`,
+  sql`SELECT id,topic_id,title,to_char(start_date,'YYYY-MM-DD') AS start_date,to_char(end_date,'YYYY-MM-DD') AS end_date,blocks,created_at,updated_at,deleted_at FROM thoughts t WHERE (${includeDeleted}::boolean OR (deleted_at IS NULL AND EXISTS(SELECT 1 FROM thought_topics p WHERE p.id=t.topic_id AND p.deleted_at IS NULL))) ORDER BY created_at,id`
  ]);
- return {plans,revisions,tasks,sessions,reviews};
+ return {plans,revisions,tasks,sessions,reviews,categories,topics,thoughts};
 }
 export async function GET(req:NextRequest){
  try{
@@ -96,19 +99,47 @@ export async function GET(req:NextRequest){
 export async function POST(req:NextRequest){
  let x:Record<string,unknown>;
  try {
-  if(Number(req.headers.get('content-length')??0)>15000)return err('요청 내용이 너무 큽니다.',413);
-  const body:unknown=await req.json();
+  if(Number(req.headers.get('content-length')??0)>180000)return err('요청 내용이 너무 큽니다.',413);
+  const raw=await req.text();
+  if(new TextEncoder().encode(raw).length>180000)return err('요청 내용이 너무 큽니다.',413);
+  const body:unknown=JSON.parse(raw);
   if(!body||typeof body!=='object'||Array.isArray(body))return err('요청 형식이 잘못되었습니다.');
   x=body as Record<string,unknown>;
   const action=str(x.action,'action',40,true);
   const sql=db();
   if(action==='createPlan'){
    const f=fields(x,'plan');
-   await sql`INSERT INTO plans(title,start_date,end_date,priority,success_criteria,estimated_minutes) VALUES(${f.title},${f.start},${f.end},${f.priority},${f.success},${f.estimated})`;
+   if(f.category)await sql`INSERT INTO plan_categories(name) VALUES(${f.category}) ON CONFLICT DO NOTHING`;
+   await sql`INSERT INTO plans(title,start_date,end_date,priority,success_criteria,estimated_minutes,category) VALUES(${f.title},${f.start},${f.end},${f.priority},${f.success},${f.estimated},${f.category})`;
   }else if(action==='editPlan'){
    const planId=id(x.id),f=fields(x,'plan');
-   const res=await sql`UPDATE plans SET title=${f.title},start_date=${f.start},end_date=${f.end},priority=${f.priority},success_criteria=${f.success},estimated_minutes=${f.estimated},version=version+1,updated_at=now() WHERE id=${planId} AND deleted_at IS NULL RETURNING id`;
+   if(f.category)await sql`INSERT INTO plan_categories(name) VALUES(${f.category}) ON CONFLICT DO NOTHING`;
+   const res=await sql`UPDATE plans SET title=${f.title},start_date=${f.start},end_date=${f.end},priority=${f.priority},success_criteria=${f.success},estimated_minutes=${f.estimated},category=${f.category},version=version+1,updated_at=now() WHERE id=${planId} AND deleted_at IS NULL RETURNING id`;
    if(!res.length)return err('계획을 찾을 수 없습니다.',404);
+   }else if(action==='setPlanCompleted'){
+   const planId=id(x.id);
+   if(typeof x.is_completed!=='boolean')throw Error('완수 여부가 올바르지 않습니다.');
+   await sql`UPDATE plans SET is_completed=${x.is_completed},version=version+1,updated_at=now() WHERE id=${planId} AND deleted_at IS NULL AND is_completed IS DISTINCT FROM ${x.is_completed}`;
+  }else if(action==='saveTopic'||action==='saveThought'){
+   const recordId=id(x.id),title=str(x.title,'이름',120,true),start=day(x.start_date,'시작일'),end=day(x.end_date,'종료일');
+   if(end<start)throw Error('종료일: 올바르지 않은 날짜 범위입니다.');
+   if(!Array.isArray(x.blocks)||x.blocks.length<1||x.blocks.length>20)throw Error('내용 칸은 1~20개를 입력하세요.');
+   const blocks=JSON.stringify(x.blocks.map(b=>str(b,'내용',2000)));
+   if(action==='saveTopic'){
+    const rows=await sql`INSERT INTO thought_topics(id,title,start_date,end_date,blocks) VALUES(${recordId},${title},${start},${end},${blocks}::jsonb)
+     ON CONFLICT(id) DO UPDATE SET title=excluded.title,start_date=excluded.start_date,end_date=excluded.end_date,blocks=excluded.blocks,updated_at=now() WHERE thought_topics.deleted_at IS NULL RETURNING id`;
+    if(!rows.length)return err('주제를 찾을 수 없습니다.',404);
+   }else{
+    const topicId=id(x.topic_id);
+    const rows=await sql`INSERT INTO thoughts(id,topic_id,title,start_date,end_date,blocks)
+     SELECT ${recordId}::uuid,id,${title},${start}::date,${end}::date,${blocks}::jsonb FROM thought_topics WHERE id=${topicId} AND deleted_at IS NULL
+     ON CONFLICT(id) DO UPDATE SET title=excluded.title,start_date=excluded.start_date,end_date=excluded.end_date,blocks=excluded.blocks,updated_at=now() WHERE thoughts.deleted_at IS NULL AND thoughts.topic_id=excluded.topic_id RETURNING id`;
+    if(!rows.length)return err('주제 또는 생각을 찾을 수 없습니다.',404);
+   }
+  }else if(action==='deleteTopic'){
+   await sql`UPDATE thought_topics SET deleted_at=now(),updated_at=now() WHERE id=${id(x.id)} AND deleted_at IS NULL`;
+  }else if(action==='deleteThought'){
+   await sql`UPDATE thoughts SET deleted_at=now(),updated_at=now() WHERE id=${id(x.id)} AND deleted_at IS NULL`;
   }else if(action==='deletePlan'){
    const planId=id(x.id);
    const res=await sql`UPDATE plans SET deleted_at=now(),updated_at=now() WHERE id=${planId} AND deleted_at IS NULL RETURNING id`;
@@ -182,8 +213,8 @@ export async function POST(req:NextRequest){
      SELECT p.*,r.improvement FROM plans p INNER JOIN reviews r ON r.plan_id=p.id
      WHERE p.id=${planId} AND p.deleted_at IS NULL AND btrim(r.improvement)<>'' AND r.next_plan_id IS NULL
    ), new_plan AS (
-     INSERT INTO plans(title,start_date,end_date,priority,success_criteria,estimated_minutes,parent_plan_id,carry_over_text)
-     SELECT LEFT('다음 계획 · ' || b.title,120),${start}::date,${end}::date,b.priority,b.success_criteria,b.estimated_minutes,b.id,b.improvement FROM base b
+     INSERT INTO plans(title,start_date,end_date,priority,success_criteria,estimated_minutes,parent_plan_id,carry_over_text,category)
+     SELECT LEFT('다음 계획 · ' || b.title,120),${start}::date,${end}::date,b.priority,b.success_criteria,b.estimated_minutes,b.id,b.improvement,b.category FROM base b
      RETURNING id
    ), linked AS (
      UPDATE reviews SET next_plan_id=(SELECT id FROM new_plan),updated_at=now() WHERE plan_id=${planId} AND EXISTS(SELECT 1 FROM new_plan) RETURNING next_plan_id

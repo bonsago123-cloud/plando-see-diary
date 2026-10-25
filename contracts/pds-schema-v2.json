@@ -10,7 +10,8 @@
     "duration_unit": "integer minutes, computed in database by ROUND((ended_at-started_at) seconds / 60)",
     "empty_aggregate": "0",
     "planned_task_time_slot": "local TIME HH:MM with no UTC conversion; optional pair, when selected start < end on the same due_date",
-    "estimate_optional": "null = not enabled; zero = enabled without a number; sum treats null as additive identity only"
+    "estimate_optional": "null = not enabled; zero = enabled without a number; sum treats null as additive identity only",
+    "calendar": "Month view with inclusive start/end dates for plans/topics/thoughts; tasks appear on due_date; sessions span their Seoul-local start/end dates."
   },
   "tables": {
     "plans": {
@@ -27,10 +28,13 @@
         "carry_over_text": "text",
         "deleted_at": "timestamptz|null",
         "created_at": "timestamptz",
-        "updated_at": "timestamptz"
+        "updated_at": "timestamptz",
+        "category": "text|null; custom category name",
+        "is_completed": "boolean; explicit plan completion independent of task status"
       },
       "relations": {
-        "parent_plan_id": "plans.id (nullable)"
+        "parent_plan_id": "plans.id (nullable)",
+        "category": "plan_categories.name (nullable)"
       },
       "behavior": "soft delete: deleted_at non-null hides plan and its related records from live GET; export retains historical records"
     },
@@ -46,7 +50,9 @@
         "success_criteria": "text",
         "estimated_minutes": "integer minutes|null (historical snapshot)",
         "carry_over_text": "text",
-        "recorded_at": "timestamptz"
+        "recorded_at": "timestamptz",
+        "category": "text|null; custom category name",
+        "is_completed": "boolean; explicit plan completion independent of task status"
       },
       "relations": {
         "plan_id": "plans.id"
@@ -119,6 +125,43 @@
         "plan_id": "plans.id",
         "next_plan_id": "plans.id"
       }
+    },
+    "plan_categories": {
+      "primary_key": "name text",
+      "fields": {
+        "name": "text, trimmed, 1–50 characters"
+      },
+      "behavior": "Created when saving a plan with a new category; category filter defaults to all."
+    },
+    "thought_topics": {
+      "primary_key": "id uuid",
+      "fields": {
+        "title": "text, 1–120 characters",
+        "start_date": "date",
+        "end_date": "date >= start_date",
+        "blocks": "jsonb array, 1–20 text blocks, each <= 2000 characters through API",
+        "created_at": "timestamptz",
+        "updated_at": "timestamptz",
+        "deleted_at": "timestamptz|null"
+      },
+      "behavior": "Soft deletion; live thoughts require a live topic; export includes deleted rows. Client UUID keeps a repeated save on the same record."
+    },
+    "thoughts": {
+      "primary_key": "id uuid",
+      "fields": {
+        "title": "text, 1–120 characters",
+        "start_date": "date",
+        "end_date": "date >= start_date",
+        "blocks": "jsonb array, 1–20 text blocks, each <= 2000 characters through API",
+        "created_at": "timestamptz",
+        "updated_at": "timestamptz",
+        "deleted_at": "timestamptz|null",
+        "topic_id": "uuid"
+      },
+      "behavior": "Soft deletion; live thoughts require a live topic; export includes deleted rows. Client UUID keeps a repeated save on the same record.",
+      "relations": {
+        "topic_id": "thought_topics.id"
+      }
     }
   },
   "aggregates": {
@@ -135,5 +178,6 @@
     "login": "none (public read AND write)",
     "database_secret": "DATABASE_URL only on server runtime; never use NEXT_PUBLIC_",
     "rendering": "React escaped text nodes; do not use dangerouslySetInnerHTML"
-  }
+  },
+  "design_source": "플랜두씨 설계(6).txt + 과제6 조건 및 목표.txt only"
 }
