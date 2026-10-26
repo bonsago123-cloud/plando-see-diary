@@ -20,7 +20,10 @@ test('latest design: real API SQL roundtrip, plan history/completion, thought hi
  try{
   await database.exec(await readFile('db/schema.sql','utf8'));
   const migration=await readFile('db/migrations/20261024_latest_design.sql','utf8');await database.exec(migration);await database.exec(migration);
-  const source=(await readFile('app/api/data/route.ts','utf8')).replace("import {db} from '@/lib/db';","const db=()=>globalThis.__latestTestSql;").replace("from 'next/server'","from 'next/server.js'");
+  await database.exec(await readFile('db/migrations/20261026_auth.sql','utf8'));
+  const testOwner='11111111-1111-4111-8111-111111111111';
+  await database.query('INSERT INTO app_users(id,email,password_hash) VALUES($1,$2,$3)',[testOwner,'regression@example.test','not-a-login-hash']);
+  const source=(await readFile('app/api/data/route.ts','utf8')).replace("import {db} from '@/lib/db';","const db=()=>globalThis.__latestTestSql;").replace("from 'next/server'","from 'next/server.js'").replace("import {AccessError,assertSameOrigin,authError,requireUser} from '@/lib/auth';", `class AccessError extends Error {constructor(status,message){super(message);this.status=status}}; const assertSameOrigin=()=>{}; const requireUser=async()=>({id:'${testOwner}'}); const authError=e=>NextResponse.json({error:e.message},{status:e.status});`);
   await writeFile(path.join(temp,'route.mjs'),ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText);
   const api=await import(path.join(temp,'route.mjs'));
   async function get(exported=false):Promise<Dashboard & {completion_events:unknown[]}>{const res=await api.GET(new NextRequest('http://localhost/api/data'+(exported?'?export=1':'')));assert.equal(res.status,200);return res.json()}

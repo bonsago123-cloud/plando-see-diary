@@ -59,3 +59,13 @@ export function toSeoulInput(date:Date=new Date()):string {
   const formatter=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Seoul',hour12:false,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
   return formatter.format(date).replace(' ','T');
 }
+
+/** Daily average for actual recorded Seoul start dates, not an invented five-day log. */
+export function recordedDayStats(tasks:Pick<Task,'id'>[],sessions:Pick<Session,'task_id'|'started_at'|'duration_minutes'|'deleted_at'>[]){
+ const ids=new Set(tasks.map(t=>t.id)),days=new Set<string>();let total=0;
+ for(const session of sessions){
+  if(!ids.has(session.task_id)||session.deleted_at)continue;
+  days.add(seoulToday(new Date(session.started_at)));total+=session.duration_minutes;
+ }
+ return {total,days:days.size,average:days.size?Math.round(total/days.size*100)/100:null};
+}

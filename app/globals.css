@@ -76,3 +76,16 @@
 @media(max-width:760px){.calendar-panel{padding:12px}.calendar-panel>.panel-head{flex-direction:column}.calendar-cell{min-height:86px;padding:5px 3px}.calendar-label{font-size:9px;padding:2px 3px}.calendar-record{flex-wrap:wrap}.calendar-record small{width:100%}.sidebar nav{grid-template-columns:repeat(7,minmax(0,1fr))}.date-columns .choice{padding:9px 5px;gap:3px}.thought-actions{flex-shrink:0}}
 .choice.task-status-select{min-width:86px;min-height:32px;padding:7px 9px;font-size:11px}.choice.task-status-todo{background:#edf1f4;color:#667b88}.choice.task-status-doing{background:#eaf2fc;color:#3d70b5}.choice.task-status-completed{background:#e7f5ed;color:#247853}
 @media(max-width:640px){.sidebar nav{display:grid;width:100%;grid-template-columns:repeat(7,minmax(0,1fr))}.nav-link{width:100%}.filters>.choice:last-child{grid-column:1/-1}}
+
+/* Authentication matches the existing diary palette; no assignment record form. */
+.auth-page{min-height:100dvh;display:grid;place-items:center;background:#f4f6fb;padding:24px}
+.auth-card{width:min(100%,440px);background:white;border:1px solid #e4e8f0;border-radius:24px;padding:40px;box-shadow:0 16px 60px #24345a0c}
+.auth-brand{color:#5b63dc;font-size:24px;font-weight:800;margin-bottom:32px}
+.auth-card h1{font-size:26px;margin:0 0 12px}.auth-card p{color:#626d80;line-height:1.6}
+.auth-card form,.account-dialog form{display:grid;gap:16px;margin-top:24px}
+.auth-card label,.account-dialog label{display:grid;gap:8px;font-weight:600}
+.auth-card input,.account-dialog input{width:100%;border:1px solid #ccd4e1;border-radius:10px;padding:12px;background:white;color:#202b40;font:inherit}
+.auth-card input:focus,.account-dialog input:focus{outline:2px solid #777dec;outline-offset:2px}
+.auth-card small{display:block;color:#6c7587;font-size:12px}.auth-switch{display:block;margin:20px auto;background:none;border:none;color:#5059ca;cursor:pointer;padding:8px}
+.account-menu{display:flex;gap:6px;flex-wrap:wrap}.account-menu .btn{font-size:12px;padding:8px}.account-dialog{padding:28px;max-width:480px}.account-dialog p{line-height:1.7;color:#626d80}.top-actions{flex-wrap:wrap}
+@media(max-width:600px){.auth-card{padding:28px 22px}.account-menu{width:100%}}

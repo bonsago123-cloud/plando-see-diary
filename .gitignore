@@ -6,3 +6,8 @@ node_modules/
 !.env.example
 *.tsbuildinfo
 .DS_Store
+
+.auth-test-*/
+.route-test-*/
+.ui-test-*/
+*.tsbuildinfo

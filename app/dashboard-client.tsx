@@ -1,5 +1,6 @@
 'use client';
 import {useCallback,useEffect,useMemo,useState, useRef, type FormEvent, type ReactNode} from 'react';
+import AccountMenu from './components/account-menu';
 import Choice from './components/choice';
 import DateChoice from './components/date-choice';
 import Calendar from './components/calendar';
@@ -9,7 +10,7 @@ import CampfireRecovery from './campfire-recovery';
 import DailyQuote from './daily-quote';
 import {Flame,Activity,ArrowDownRight,ArrowRight,ArrowUpRight,BookOpen,CalendarDays,Check,CheckCircle2,ChevronDown,ChevronRight,Clock3,CloudDownload,FileClock,Flag,History,LayoutDashboard,ListTodo,LoaderCircle,Plus,RefreshCw,Search,ShieldAlert,Sparkles,Target,Trash2, X, Pencil, Repeat2, CircleHelp} from 'lucide-react';
 import {EMPTY,type Dashboard,type MetricKey,type Plan,type Priority,type Session,type Task,type TaskStatus} from '@/lib/types';
-import {compareTaskTime,evidenceTasks,minutesLabel,seoulToday,summarize,taskIsOverdue,taskTimeBarPercent,toSeoulInput} from '@/lib/metrics';
+import {recordedDayStats,compareTaskTime,evidenceTasks,minutesLabel,seoulToday,summarize,taskIsOverdue,taskTimeBarPercent,toSeoulInput} from '@/lib/metrics';
 import {statusAfterCheckboxClick,STATUS_OPTIONS} from '@/lib/task-status';
 
 type Page='overview'|'plans'|'tasks'|'activity'|'review'|'calendar'|'thoughts';
@@ -52,18 +53,30 @@ export default function DashboardClient(){
  const refresh=useCallback(async()=>{
   try{
    const res=await fetch('/api/data',{cache:'no-store'});
+   if(res.status===401){setData(EMPTY);window.location.replace('/login');return false;}
    const json=await res.json();if(!res.ok)throw Error(json.error||'데이터를 불러오지 못했습니다.');
    setData(json as Dashboard);setError('');
    setSelectedPlan(prev=>(json.plans as Plan[]).some(p=>p.id===prev)?prev:(json.plans[0]?.id??''));
   }catch(e){setError(e instanceof Error?e.message:'서버 오류가 발생했습니다.')}finally{setBusy(false)}
  },[]);
  useEffect(()=>{void refresh()},[refresh]);
+ useEffect(()=>{
+  const lock=()=>{setData(EMPTY);window.location.replace('/login')};
+  const channel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('pds-auth'):null;
+  if(channel)channel.onmessage=lock;
+  const check=()=>{if(document.visibilityState==='visible')void refresh()};
+  const restored=(event:PageTransitionEvent)=>{if(event.persisted)lock()};
+  document.addEventListener('visibilitychange',check);window.addEventListener('pageshow',restored);
+  const timer=window.setInterval(()=>void refresh(),60000);
+  return ()=>{channel?.close();document.removeEventListener('visibilitychange',check);window.removeEventListener('pageshow',restored);window.clearInterval(timer)};
+ },[refresh]);
  const plan=data.plans.find(p=>p.id===selectedPlan);
  const tasks=useMemo(()=>data.tasks.filter(t=>t.plan_id===selectedPlan),[data.tasks,selectedPlan]);
  const taskIds=useMemo(()=>new Set(tasks.map(t=>t.id)),[tasks]);
  const sessions=useMemo(()=>data.sessions.filter(s=>taskIds.has(s.task_id)),[data.sessions,taskIds]);
  const rev=useMemo(()=>data.reviews.find(r=>r.plan_id===selectedPlan),[data.reviews,selectedPlan]);
  useEffect(()=>{setReviewText(rev?.reflection??'');setImprovement(rev?.improvement??'');setEvidence(null);setHistoryOpen(false)},[selectedPlan,rev?.reflection,rev?.improvement]);
+ const dayStats=useMemo(()=>recordedDayStats(tasks,sessions),[tasks,sessions]);
  const stats=useMemo(()=>summarize(tasks,sessions),[tasks,sessions]);
  const visibleTasks=useMemo(()=>{
   const q=search.toLocaleLowerCase('ko');
@@ -99,6 +112,7 @@ export default function DashboardClient(){
   if(saving)return false;setSaving(true);setError('');
   try{
    const res=await fetch('/api/data',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...payload})});
+   if(res.status===401){setData(EMPTY);window.location.replace('/login');return false;}
    const json=await res.json();if(!res.ok)throw Error(json.error||'저장하지 못했습니다.');
    await refresh();setToast(message);window.setTimeout(()=>setToast(''),3500);return true;
   }catch(e){setError(e instanceof Error?e.message:'요청 실패');return false}finally{setSaving(false)}
@@ -154,7 +168,7 @@ export default function DashboardClient(){
    <div className="sidebar-label">WORKSPACE</div><nav aria-label="주 메뉴">{nav.map(n=>{const Icon=n.icon;return <button key={n.id} type="button" className={`nav-link ${page===n.id?'selected':''}`} onClick={()=>{setPage(n.id);setEvidence(null);setThoughtFocus(null)}}><Icon size={19}/><span>{n.label}</span>{page===n.id&&<span className="nav-mark"/>}</button>})}</nav>
    <div className="sidebar-bottom"><div className="sidebar-tip"><div className="tip-icon"><Sparkles size={17}/></div><strong>작은 기록이 큰 변화를</strong><p>계획과 실제를 비교해 다음 한 걸음을 더 정확하게 만들어 보세요.</p></div><div className="sidebar-copyright">© 2026 PlandoSee · 과제 6</div></div>
   </aside>
-  <main className="main"><header className="topbar"><div className="mobile-logo"><Sparkles size={19}/> 플랜두씨</div><div className="breadcrumb">나의 워크스페이스 <ChevronRight size={14}/><b>{nav.find(n=>n.id===page)?.label}</b></div><div className="top-actions"><button type="button" className="campfire-trigger" onClick={enterCampfire} title="마음 회복 모드"><Flame size={16}/> 마음 회복</button><span className="today-label"><CalendarDays size={15}/>{today()}</span><IconButton title="새로고침" onClick={()=>void refresh()}><RefreshCw size={18}/></IconButton><a className="export-link" href="/api/data?export=1"><CloudDownload size={17}/> 전체 내보내기</a></div></header>
+  <main className="main"><header className="topbar"><div className="mobile-logo"><Sparkles size={19}/> 플랜두씨</div><div className="breadcrumb">나의 워크스페이스 <ChevronRight size={14}/><b>{nav.find(n=>n.id===page)?.label}</b></div><div className="top-actions"><button type="button" className="campfire-trigger" onClick={enterCampfire} title="마음 회복 모드"><Flame size={16}/> 마음 회복</button><span className="today-label"><CalendarDays size={15}/>{today()}</span><IconButton title="새로고침" onClick={()=>void refresh()}><RefreshCw size={18}/></IconButton><a className="export-link" href="/api/data?export=1"><CloudDownload size={17}/> 전체 내보내기</a><AccountMenu/></div></header>
    <div className="main-content"><div className="public-alert"><ShieldAlert size={20}/><span>지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요</span></div>
    {error&&<div role="alert" className="error-banner"><CircleHelp size={18}/><div>{error}</div><button type="button" onClick={()=>void refresh()}>다시 시도</button></div>}
    {toast&&<div role="status" className="toast"><CheckCircle2 size={17}/>{toast}</div>}
@@ -165,7 +179,7 @@ export default function DashboardClient(){
    {page==='thoughts'&&<Thoughts key={thoughtFocus?thoughtFocus.kind+thoughtFocus.id:'thoughts'} data={data} saving={saving} mutate={mutate} focus={thoughtFocus}/>}
    {page==='overview'&&<><div className="overview-heading"><h2>이번 계획의 진행 상황</h2><span>집계 카드를 누르면 근거 기록으로 이동합니다 <ArrowUpRight size={14}/></span></div><div className="metric-grid">{metricCard('all',stats.planned,ListTodo,'등록된 할 일')}{metricCard('completed',stats.completed,CheckCircle2,'현재 완료된 일')}{metricCard('overdue',stats.overdue,CalendarDays,'마감일을 지난 일')}{metricCard('blocked',stats.blocked,Flag,'막힘이 기록된 일')}</div>
     <div className="two-columns"><section className="panel"><div className="panel-head"><div><h2>최근 할 일</h2><p>지금 가장 먼저 할 일을 확인하세요.</p></div><button className="text-link" onClick={()=>setPage('tasks')}>전체 보기 <ArrowRight size={15}/></button></div>{plan?currentTaskList(5):<EmptyState icon={Target} title="첫 계획을 만들어 주세요" detail="직접 하고 있는 일을 계획으로 등록하면 여기에 나타나요." action={<button className="btn btn-primary" onClick={openCreatePlan}><Plus size={16}/> 계획 만들기</button>}/>}</section>
-    <section className="panel"><div className="panel-head"><div><h2>시간 분석</h2><p>예상과 실제를 비교해 보세요.</p></div><Clock3 size={20} className="muted-icon"/></div><div className="time-stats"><div><small>예상 시간</small><strong>{minutesLabel(stats.estimated)}</strong></div><div><small>실제 사용 시간</small><strong>{minutesLabel(stats.actual)}</strong></div></div><div className="time-bars"><div className="bar-title"><span>예상</span><span>{stats.estimated}분</span></div><div className="bar-track"><div className="bar-plan" style={{width:`${stats.estimated?Math.max(2,stats.estimated/Math.max(1,stats.estimated,stats.actual)*100):0}%`}}/></div><div className="bar-title"><span>실제</span><span>{stats.actual}분</span></div><div className="bar-track"><div className="bar-actual" style={{width:`${stats.actual?Math.max(2,stats.actual/Math.max(1,stats.estimated,stats.actual)*100):0}%`}}/></div></div><div className="difference-box"><span>계획 대비 차이</span><strong>{stats.difference>0?'+':''}{minutesLabel(stats.difference)}</strong><span className="difference-note">실제 시간 − 예상 시간</span></div><button className="btn btn-light full" onClick={()=>setPage('review')}>자세히 돌아보기 <ArrowRight size={16}/></button></section></div>
+    <section className="panel"><div className="panel-head"><div><h2>시간 분석</h2><p>예상과 실제를 비교해 보세요.</p><p>기록일 {dayStats.days}일 · 기록일 평균 {dayStats.average===null?'—':dayStats.average+'분'}</p></div><Clock3 size={20} className="muted-icon"/></div><div className="time-stats"><div><small>예상 시간</small><strong>{minutesLabel(stats.estimated)}</strong></div><div><small>실제 사용 시간</small><strong>{minutesLabel(stats.actual)}</strong></div></div><div className="time-bars"><div className="bar-title"><span>예상</span><span>{stats.estimated}분</span></div><div className="bar-track"><div className="bar-plan" style={{width:`${stats.estimated?Math.max(2,stats.estimated/Math.max(1,stats.estimated,stats.actual)*100):0}%`}}/></div><div className="bar-title"><span>실제</span><span>{stats.actual}분</span></div><div className="bar-track"><div className="bar-actual" style={{width:`${stats.actual?Math.max(2,stats.actual/Math.max(1,stats.estimated,stats.actual)*100):0}%`}}/></div></div><div className="difference-box"><span>계획 대비 차이</span><strong>{stats.difference>0?'+':''}{minutesLabel(stats.difference)}</strong><span className="difference-note">실제 시간 − 예상 시간</span></div><button className="btn btn-light full" onClick={()=>setPage('review')}>자세히 돌아보기 <ArrowRight size={16}/></button></section></div>
     <DailyQuote/>
    </>}
    {page==='plans'&&<><div className="section-heading"><h2>{planList==='completed'?'완수한 계획 목록':'계획 목록'} <span className="count">{visiblePlans.length}</span></h2><p>계획을 수정하면 이전 버전이 자동으로 저장됩니다.</p></div><div className="plan-list-filters"><div className="plan-list-tabs" role="group" aria-label="계획 목록 종류"><button type="button" aria-pressed={planList==='active'} className={`btn ${planList==='active'?'btn-primary':'btn-light'}`} onClick={()=>setPlanList('active')}>계획 목록</button><button type="button" aria-pressed={planList==='completed'} className={`btn ${planList==='completed'?'btn-primary':'btn-light'}`} onClick={()=>setPlanList('completed')}>완수한 계획</button></div><label className="category-filter">카테고리 <Choice aria-label="카테고리 필터" value={categoryFilter} onChange={e=>setCategoryFilter(e.target.value)}><option value="all">전체보기</option><option value="none">미지정</option>{(data.categories??[]).map(c=><option key={c.name} value={'category:'+c.name}>{c.name}</option>)}</Choice></label></div>{!visiblePlans.length&&<p className="thought-empty">조건에 맞는 계획이 없어요.</p>}<div className="plan-grid">{visiblePlans.map(p=>{const child=data.tasks.filter(t=>t.plan_id===p.id),n=child.filter(t=>t.status==='completed').length;return <article className={`plan-card ${selectedPlan===p.id?'plan-card-selected':''}`} key={p.id}><div className="plan-card-top"><Pill tone={p.priority==='high'?'rose':p.priority==='medium'?'blue':'neutral'}>{priorityName[p.priority]} 우선순위</Pill><span className="version">v{p.version}</span></div><h3>{p.title}</h3>{p.category&&<Pill>{p.category}</Pill>}<p>{p.success_criteria}</p>{p.carry_over_text&&<div className="carry-note"><Repeat2 size={14}/>{p.carry_over_text}</div>}<div className="plan-dates"><CalendarDays size={15}/>{p.start_date} ~ {p.end_date}</div><div className="plan-progress"><span>완료율</span><strong>{child.length?Math.round(n/child.length*100):0}%</strong></div><div className="mini-progress"><div style={{width:`${child.length?n/child.length*100:0}%`}}/></div><button type="button" className="btn btn-light plan-completion" disabled={saving} onClick={()=>void mutate('setPlanCompleted',{id:p.id,is_completed:!p.is_completed},p.is_completed?'계획 완수를 해제했어요.':'완수한 계획에 보관했어요.')}><CheckCircle2 size={15}/>{p.is_completed?'완수 해제':'완수 처리'}</button><div className="plan-card-footer"><button className="btn btn-light" onClick={()=>{setSelectedPlan(p.id);setPage('tasks')}}>할 일 보기 <ArrowRight size={15}/></button><button className="btn btn-outline" onClick={()=>{setSelectedPlan(p.id);openEditPlan(p)}} disabled={saving}><Pencil size={15}/> 수정</button><button className="btn btn-plan-delete" type="button" onClick={()=>void deletePlan(p)} disabled={saving} aria-label={`${p.title} 계획 삭제`}><Trash2 size={15}/> 삭제</button></div></article>})}<button className="plan-card add-plan" onClick={openCreatePlan}><span><Plus size={26}/></span><strong>새 계획 만들기</strong><small>새로운 목표로 다음 여정을 시작해 보세요.</small></button></div>
