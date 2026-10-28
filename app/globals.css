@@ -89,3 +89,13 @@
 .auth-card small{display:block;color:#6c7587;font-size:12px}.auth-switch{display:block;margin:20px auto;background:none;border:none;color:#5059ca;cursor:pointer;padding:8px}
 .account-menu{display:flex;gap:6px;flex-wrap:wrap}.account-menu .btn{font-size:12px;padding:8px}.account-dialog{padding:28px;max-width:480px}.account-dialog p{line-height:1.7;color:#626d80}.top-actions{flex-wrap:wrap}
 @media(max-width:600px){.auth-card{padding:28px 22px}.account-menu{width:100%}}
+
+/* Record audit times sit immediately before the duration. */
+.session-timestamps{display:flex;gap:20px;flex:none;padding:2px 18px;border-left:1px solid #e6eee9;border-right:1px solid #e6eee9;color:#536e60;font-size:11px;font-variant-numeric:tabular-nums;line-height:1.6}
+.session-timestamps>div{display:grid;gap:4px}
+.session-stamp-label{font-size:11px;font-weight:700;color:#6f8378}
+.session-stamp-label small{font-size:9px;font-weight:400;color:#81958a;margin-left:4px}
+.session-timestamps time{white-space:nowrap}
+.session-text strong,.block-note{overflow-wrap:anywhere}
+@media(min-width:641px) and (max-width:1250px){.session-timestamps{flex-direction:column;gap:8px;padding:2px 12px}}
+@media(max-width:640px){.session-timestamps{order:1;flex:1 1 calc(100% - 48px);margin-left:48px;padding:10px 0;border-left:0;border-right:0;border-top:1px solid #edf2ef;flex-wrap:wrap;gap:10px 20px}.session-duration,.session-actions{order:2}}

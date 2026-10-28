@@ -119,6 +119,16 @@ test('T07 real handlers + PostgreSQL: auth, revocation, all resource isolation, 
   const mine=(await call('owner mutation baseline','/api/data',A)).json;
   await call('owner edit task','/api/data',A,{action:'editTask',...task,id:mine.tasks[0].id});
   await call('owner edit session','/api/data',A,{action:'editSession',id:mine.sessions[0].id,task_id:mine.tasks[0].id,started:'2026-10-01T09:00',ended:'2026-10-01T09:40',blocked_reason:''});
+  const edited=(await call('edited timestamp read','/api/data',A)).json.sessions[0];
+  assert.equal(mine.sessions[0].updated_at,null);
+  assert.equal(edited.created_at,mine.sessions[0].created_at);
+  assert.ok(Date.parse(edited.updated_at)>=Date.parse(edited.created_at));
+  assert.equal(edited.duration_minutes,40);
+  await call('second edit ignores supplied audit timestamps','/api/data',A,{action:'editSession',id:edited.id,task_id:edited.task_id,started:'2026-10-01T09:00',ended:'2026-10-01T09:41',blocked_reason:'edited',created_at:'2000-01-01',updated_at:'2000-01-01'});
+  const editedAgain=(await call('latest edit timestamp read','/api/data',A)).json.sessions[0];
+  assert.equal(editedAgain.created_at,edited.created_at);
+  assert.ok(Date.parse(editedAgain.updated_at)>Date.parse(edited.updated_at));
+  assert.equal(editedAgain.duration_minutes,41);
   await call('owner edit topic','/api/data',A,{action:'saveTopic',...topic,id:mine.topics[0].id});
   await call('owner edit thought','/api/data',A,{action:'saveThought',...topic,id:mine.thoughts[0].id,topic_id:mine.topics[0].id});
   await call('owner delete thought','/api/data',A,{action:'deleteThought',id:mine.thoughts[0].id});

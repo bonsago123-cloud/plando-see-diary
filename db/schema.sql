@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS work_sessions (
   duration_minutes integer GENERATED ALWAYS AS (round(extract(epoch FROM (ended_at-started_at))/60)::integer) STORED,
   blocked_reason text NOT NULL DEFAULT '',
   created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz,
   deleted_at timestamptz,
   CHECK(length(blocked_reason) <= 1000)
 );

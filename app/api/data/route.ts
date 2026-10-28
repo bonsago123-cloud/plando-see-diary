@@ -75,8 +75,8 @@ async function loadAll(ownerId:string,includeDeleted=false){
    ?sql`SELECT id,plan_id,title,description,to_char(due_date,'YYYY-MM-DD') AS due_date,priority,tag,estimated_minutes,to_char(start_time,'HH24:MI') AS start_time,to_char(end_time,'HH24:MI') AS end_time,status,completed_at,deleted_at,created_at,updated_at FROM tasks t WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=t.plan_id AND p.owner_id=${ownerId}) ORDER BY created_at,id`
    :sql`SELECT id,plan_id,title,description,to_char(due_date,'YYYY-MM-DD') AS due_date,priority,tag,estimated_minutes,to_char(start_time,'HH24:MI') AS start_time,to_char(end_time,'HH24:MI') AS end_time,status,completed_at,created_at,updated_at FROM tasks t WHERE t.deleted_at IS NULL AND EXISTS (SELECT 1 FROM plans p WHERE p.id=t.plan_id AND p.deleted_at IS NULL AND p.owner_id=${ownerId}) ORDER BY created_at,id`,
   includeDeleted
-   ?sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at,deleted_at FROM work_sessions s WHERE EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.owner_id=${ownerId}) ORDER BY started_at DESC,id`
-   :sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at FROM work_sessions s WHERE s.deleted_at IS NULL AND EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.deleted_at IS NULL AND p.owner_id=${ownerId}) ORDER BY started_at DESC,id`,
+   ?sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at,updated_at,deleted_at FROM work_sessions s WHERE EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.owner_id=${ownerId}) ORDER BY started_at DESC,id`
+   :sql`SELECT id,task_id,started_at,ended_at,duration_minutes,blocked_reason,created_at,updated_at FROM work_sessions s WHERE s.deleted_at IS NULL AND EXISTS (SELECT 1 FROM tasks t JOIN plans p ON p.id=t.plan_id WHERE t.id=s.task_id AND p.deleted_at IS NULL AND p.owner_id=${ownerId}) ORDER BY started_at DESC,id`,
   includeDeleted
    ?sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.owner_id=${ownerId}) ORDER BY updated_at DESC`
    :sql`SELECT plan_id,reflection,improvement,next_plan_id,updated_at FROM reviews r WHERE EXISTS (SELECT 1 FROM plans p WHERE p.id=r.plan_id AND p.deleted_at IS NULL AND p.owner_id=${ownerId}) ORDER BY updated_at DESC`,
@@ -207,7 +207,7 @@ export async function POST(req:NextRequest){
    // Only edit a live record; changing the linked task is limited to the same live plan.
    // duration_minutes is a GENERATED ALWAYS column, recalculated by PostgreSQL.
    const res=await sql`UPDATE work_sessions s
-    SET task_id=${taskId},started_at=${start}::timestamptz,ended_at=${end}::timestamptz,blocked_reason=${reason}
+    SET task_id=${taskId},started_at=${start}::timestamptz,ended_at=${end}::timestamptz,blocked_reason=${reason},updated_at=clock_timestamp()
     WHERE s.id=${sessionId} AND s.deleted_at IS NULL
       AND EXISTS (SELECT 1 FROM tasks t JOIN tasks original ON original.id=s.task_id
        JOIN plans p ON p.id=t.plan_id
