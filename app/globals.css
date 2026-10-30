@@ -101,3 +101,5 @@
 @media(max-width:640px){.session-timestamps{order:1;flex:1 1 calc(100% - 48px);margin-left:48px;padding:10px 0;border-left:0;border-right:0;border-top:1px solid #edf2ef;flex-wrap:wrap;gap:10px 20px}.session-duration,.session-actions{order:2}}
 
 .rules-panel{margin-bottom:24px}.rule-filters{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.rule-filters input,.rule-filters select{border:1px solid #dae7df;border-radius:8px;padding:11px;background:white;color:#34483f;min-width:0}.rule-filters input{flex:1}.rule-item{padding:18px 0;border-top:1px solid #edf2ef}.rule-item h3{font-size:14px;overflow-wrap:anywhere}.rule-item small{color:#72817e;font-size:11px}.rule-description,.rule-item .history-item p{white-space:pre-wrap;overflow-wrap:anywhere}.rule-item summary{display:flex;gap:6px;align-items:center;cursor:pointer;margin:14px 0;color:#246750;font-size:12px}
+
+
