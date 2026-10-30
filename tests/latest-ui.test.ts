@@ -39,7 +39,7 @@ test('dashboard connects completed plans, category filter, saved task fields, ca
  const temp=await mkdtemp(path.resolve('.ui-test-'));
  const dom=new JSDOM('<!doctype html><html><body><div id="app"></div></body></html>',{url:'http://localhost'});
  const base={start_date:'2026-03-04',end_date:'2026-03-10',priority:'medium',success_criteria:'원래 기준',estimated_minutes:60,version:1,parent_plan_id:null,carry_over_text:'',created_at:'2026-03-04T00:00:00Z',updated_at:'2026-03-04T00:00:00Z'};
- const data={plans:[{...base,id:'p1',title:'현재 계획',category:'학습',is_completed:false},{...base,id:'p2',title:'지난 계획',category:'운동',is_completed:true}],revisions:[],tasks:[{id:'t1',plan_id:'p1',title:'저장된 할 일',description:'내용',due_date:'2026-03-05',priority:'medium',tag:'연습',estimated_minutes:30,start_time:'06:10',end_time:'06:40',status:'todo',completed_at:null,created_at:'',updated_at:''}],sessions:[],reviews:[],categories:[{name:'학습'},{name:'운동'}],topics:[{id:'topic1',title:'주제 이름',start_date:'2026-03-01',end_date:'2026-03-20',blocks:['원문 1','원문 2'],created_at:'',updated_at:''}],thoughts:[]};
+ const data={rules:[{id:'r1',plan_id:'p1',title:'테스트 규칙',description:'매일 지킬 기준',priority:'medium',status:'active',version:1,created_at:'2026-03-04T00:00:00Z',updated_at:'2026-03-04T00:00:00Z',history:[]}],plans:[{...base,id:'p1',title:'현재 계획',category:'학습',is_completed:false},{...base,id:'p2',title:'지난 계획',category:'운동',is_completed:true}],revisions:[],tasks:[{id:'t1',plan_id:'p1',title:'저장된 할 일',description:'내용',due_date:'2026-03-05',priority:'medium',tag:'연습',estimated_minutes:30,start_time:'06:10',end_time:'06:40',status:'todo',completed_at:null,created_at:'',updated_at:''}],sessions:[],reviews:[],categories:[{name:'학습'},{name:'운동'}],topics:[{id:'topic1',title:'주제 이름',start_date:'2026-03-01',end_date:'2026-03-20',blocks:['원문 1','원문 2'],created_at:'',updated_at:''}],thoughts:[]};
  const globals=globalThis as Record<string,unknown>,saved=new Map<string,PropertyDescriptor|undefined>();
  for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,localStorage:dom.window.localStorage,IS_REACT_ACT_ENVIRONMENT:true,fetch:async()=>new Response(JSON.stringify(data),{status:200})})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,writable:true,configurable:true})}
  let root:ReturnType<typeof import('react-dom/client').createRoot>|undefined;
@@ -52,7 +52,13 @@ test('dashboard connects completed plans, category filter, saved task fields, ca
   await click('내 계획','nav button');assert.ok(document.querySelector('.plan-grid')?.textContent?.includes('현재 계획'));assert.ok(!document.querySelector('.plan-grid')?.textContent?.includes('지난 계획'));
   await click('완수한 계획');assert.ok(document.querySelector('.plan-grid')?.textContent?.includes('지난 계획'));assert.ok(!document.querySelector('.plan-grid')?.textContent?.includes('현재 계획'));
   assert.equal(document.querySelector('[aria-label="카테고리 필터"]')?.textContent,'전체보기⌄');
-  await click('할 일 관리','nav button');await click('저장된 할 일');
+  await click('계획 관리','nav button');
+  assert.ok(document.querySelector('.rules-panel')?.textContent?.includes('테스트 규칙'));
+  await act(async()=>(document.querySelector('[aria-label="규칙 수정: 테스트 규칙"]') as HTMLButtonElement).click());
+  assert.equal((document.querySelector('.rules-panel input[required]') as HTMLInputElement).value,'테스트 규칙');
+  assert.ok(document.querySelector('.rules-panel textarea[required]'));
+  await act(async()=>(document.querySelector('[aria-label="규칙 창 닫기"]') as HTMLButtonElement).click());
+  await click('저장된 할 일');
   const dateInputs=Array.from(document.querySelectorAll<HTMLInputElement>('.date-constraint')).map(i=>i.value);assert.deepEqual(dateInputs,['2026-03-05','06:10','06:40']);
   await act(async()=>(document.querySelector('[aria-label="닫기"]') as HTMLButtonElement).click());
   await click('캘린더','nav button');assert.equal(document.querySelectorAll('.calendar-cell').length,42);
