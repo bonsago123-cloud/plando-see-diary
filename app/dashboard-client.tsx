@@ -171,7 +171,7 @@ export default function DashboardClient(){
    <div className="sidebar-bottom"><div className="sidebar-tip"><div className="tip-icon"><Sparkles size={17}/></div><strong>작은 기록이 큰 변화를</strong><p>계획과 실제를 비교해 다음 한 걸음을 더 정확하게 만들어 보세요.</p></div><div className="sidebar-copyright">© 2026 PlandoSee · 과제 6</div></div>
   </aside>
   <main className="main"><header className="topbar"><div className="mobile-logo"><Sparkles size={19}/> 플랜두씨</div><div className="breadcrumb">나의 워크스페이스 <ChevronRight size={14}/><b>{nav.find(n=>n.id===page)?.label}</b></div><div className="top-actions"><button type="button" className="campfire-trigger" onClick={enterCampfire} title="마음 회복 모드"><Flame size={16}/> 마음 회복</button><span className="today-label"><CalendarDays size={15}/>{today()}</span><IconButton title="새로고침" onClick={()=>void refresh()}><RefreshCw size={18}/></IconButton><a className="export-link" href="/api/data?export=1"><CloudDownload size={17}/> 전체 내보내기</a><AccountMenu/></div></header>
-   <div className="main-content"><div className="public-alert"><ShieldAlert size={20}/><span>지금은 로그인이 없어 링크를 아는 사람은 누구나 볼 수 있습니다. 남이 봐도 괜찮은 내용만 넣으세요</span></div>
+   <div className="main-content"><div className="public-alert"><ShieldAlert size={20}/><span>로그인한 계정에서만 계획과 기록을 확인할 수 있습니다. 계정 정보를 안전하게 관리하세요.</span></div>
    {error&&<div role="alert" className="error-banner"><CircleHelp size={18}/><div>{error}</div><button type="button" onClick={()=>void refresh()}>다시 시도</button></div>}
    {toast&&<div role="status" className="toast"><CheckCircle2 size={17}/>{toast}</div>}
    {busy?<div className="loading"><LoaderCircle size={25} className="spin"/> 데이터 불러오는 중</div>:<>
